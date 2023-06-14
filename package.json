@@ -13,11 +13,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "lodash": "^4.17.21",
     "node": "^20.2.0",
     "nodemon": "^2.0.22",
     "path-to-regexp": "^6.2.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.195",
     "@types/node": "^20.3.0",
     "@types/path-to-regexp": "^1.7.0",
     "ts-node": "^10.9.1"

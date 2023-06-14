@@ -1,28 +1,40 @@
 import Request from "./Request";
 import Response from "./Response";
 import { pathToRegexp } from 'path-to-regexp';
-import { Controller, Route } from "./types";
+import { Controller, Method, Route, RouteDef } from "./types";
+import * as _ from 'lodash';
+
 
 export default class Router {
-  routes: Route[];
+  routes: Map<Method, Route[]>;
 
-  constructor(routes: { path: string; controller: Controller }[]) {
-    this.routes = routes.map(({ path, controller }) => {
-      return {
-        controller,
-        pathRegex: pathToRegexp(path),
-      };
-    });
+  constructor(routes: RouteDef[]) {
+    this.routes = new Map(
+      _.entries(_.groupBy(routes, (r) => r.method)).map(([method, routeDefs]) => {
+        return [
+          method as Method,
+          routeDefs.map((r) => ({
+            pathRegex: pathToRegexp(r.path),
+            controller: r.controller,
+          })),
+        ];
+      }),
+    );
   }
 
-  getRoute(url: string): Controller {
-    const route = this.routes.find((r) => {
-      return r.pathRegex.exec(url) !== null;
-    });
+  getRoute(method: Method, url: string): Controller {
+    const methodGroup = this.routes.get(method)
+    if (methodGroup) {
+      const route = methodGroup.find((r) => {
+        return r.pathRegex.exec(url) !== null;
+      });
 
-    return route
-      ? route.controller
-      : async (_: Request, res: Response) =>
-          res.notFound();
+      if (route) {
+        return route.controller;
+      }
+    }
+
+    return async (_: Request, res: Response) =>
+      res.notFound();
   }
 }

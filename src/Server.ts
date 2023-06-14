@@ -1,13 +1,13 @@
 import http from 'http';
 import Request from './Request';
 import Response from './Response';
-import { Controller, Route  } from './types';
+import { Controller, Method, Route  } from './types';
 import Router from './Router';
 
 export default class Server {
   server: http.Server;
 
-  constructor(routes: { path: string; controller: Controller }[]) { 
+  constructor(routes: { path: string; method: string; controller: Controller }[]) { 
     const router = new Router(routes);
     const serverOptions = {
       IncomingMessage: Request,
@@ -17,7 +17,7 @@ export default class Server {
     this.server = http.createServer(
       serverOptions,
       async (req: Request, res: Response) => {
-        const controller = router.getRoute(req.url ?? '');
+        const controller = router.getRoute(req.method as Method, req.url ?? '');
         try {
           controller(req, res);
         } catch(err) {
